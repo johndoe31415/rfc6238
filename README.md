@@ -16,7 +16,12 @@ $ adb shell
   > # cat /data/data/com.valvesoftware.android.steam.community/files/*
 ```
 
-And paste the content into steamguard.json.
+And paste the content into `steamguard.json`. Then you can just do:
+
+```
+$ ./steamguard
+R3434
+```
 
 ## License
 GNU GPL-3.
