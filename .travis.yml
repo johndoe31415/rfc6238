@@ -1,0 +1,9 @@
+language: python
+python:
+    - 3.5
+
+before_install:
+    - pip3 install cryptography 
+
+script: 
+    - python3 -m unittest rfc6238.Tests
