@@ -33,14 +33,20 @@ class Account():
 		secret = base64.b64decode(account_data["secret"])
 		if self._account_data["type"] == "steamauth":
 			self._auth = rfc6238.RFC6238Auth(secret, presentation = rfc6238.RFC6238PresentationSteamAuthenticator())
+		elif self._account_data["type"] == "rfc6238":
+			self._auth = rfc6238.RFC6238Auth(secret, hmac = account_data.get("hmac", "sha1"), presentation = rfc6238.RFC6238PresentationDigits(account_data.get("digits", 6)))
 		else:
 			raise NotImplementedError(self._account_data["type"])
+
+	@property
+	def name(self):
+		return self._account_data["name"]
 
 	def _token(self):
 		return self._auth.now()
 
-	def print_token(self):
-		print("%s: %s" % (self._account_data["name"], self._token()))
+	def print_token(self, token_len = 0):
+		print("%-*s: %s" % (token_len, self.name, self._token()))
 
 run_dir = os.path.dirname(os.path.realpath(__file__))
 with open(run_dir + "/accounts.json") as f:
@@ -51,8 +57,9 @@ def clrscr():
 	sys.stdout.write("\x1b[H\x1b[2J\x1b[3J")
 	sys.stdout.flush()
 
+length = max(len(account.name) for account in accounts)
 while True:
 	clrscr()
 	for account in accounts:
-		account.print_token()
+		account.print_token(length)
 	time.sleep(1)
