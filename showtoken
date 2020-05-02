@@ -30,7 +30,18 @@ import os
 class Account():
 	def __init__(self, account_data):
 		self._account_data = account_data
-		secret = base64.b64decode(account_data["secret"])
+
+		secret = account_data["secret"]
+		if secret.startswith("b64:"):
+			secret = base64.b64decode(account_data["secret"][4:])
+		elif secret.startswith("b32:"):
+			print(account_data["secret"][4:])
+			secret = base64.b32decode(account_data["secret"][4:].upper())
+		elif secret.startswith("str:"):
+			secret = account_data["secret"][4:].encode("ascii")
+		else:
+			raise NotImplementedError(secret)
+
 		if self._account_data["type"] == "steamauth":
 			self._auth = rfc6238.RFC6238Auth(secret, presentation = rfc6238.RFC6238PresentationSteamAuthenticator())
 		elif self._account_data["type"] == "rfc6238":
