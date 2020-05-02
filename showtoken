@@ -25,6 +25,7 @@ import json
 import base64
 import time
 import sys
+import os
 
 class Account():
 	def __init__(self, account_data):
@@ -41,7 +42,8 @@ class Account():
 	def print_token(self):
 		print("%s: %s" % (self._account_data["name"], self._token()))
 
-with open("accounts.json") as f:
+run_dir = os.path.dirname(os.path.realpath(__file__))
+with open(run_dir + "/accounts.json") as f:
 	accounts = json.load(f)
 accounts = [ Account(acct_data) for acct_data in accounts ]
 
