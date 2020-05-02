@@ -1,0 +1,56 @@
+#!/usr/bin/python3
+#	rfc6238 - RFC6238-compliant TOTP token generator with Steam Authenticator support
+#	Copyright (C) 2020-2020 Johannes Bauer
+#
+#	This file is part of rfc6238.
+#
+#	rfc6238 is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	rfc6238 is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with rfc6238; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import rfc6238
+import json
+import base64
+import time
+import sys
+
+class Account():
+	def __init__(self, account_data):
+		self._account_data = account_data
+		secret = base64.b64decode(account_data["secret"])
+		if self._account_data["type"] == "steamauth":
+			self._auth = rfc6238.RFC6238Auth(secret, presentation = rfc6238.RFC6238PresentationSteamAuthenticator())
+		else:
+			raise NotImplementedError(self._account_data["type"])
+
+	def _token(self):
+		return self._auth.now()
+
+	def print_token(self):
+		print("%s: %s" % (self._account_data["name"], self._token()))
+
+with open("accounts.json") as f:
+	accounts = json.load(f)
+accounts = [ Account(acct_data) for acct_data in accounts ]
+
+def clrscr():
+	sys.stdout.write("\x1b[H\x1b[2J\x1b[3J")
+	sys.stdout.flush()
+
+while True:
+	clrscr()
+	for account in accounts:
+		account.print_token()
+	time.sleep(1)

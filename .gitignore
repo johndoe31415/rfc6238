@@ -1,3 +1,4 @@
 .*.swp
-steamguard.json
 __pycache__
+steamguard.json
+accounts.json
