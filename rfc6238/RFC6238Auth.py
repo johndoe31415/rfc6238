@@ -66,7 +66,8 @@ class RFC6238Auth():
 			"sha512":	cryptography.hazmat.primitives.hashes.SHA512,
 		}[hmac.lower()]()
 
-	def code_at(self, ts):
+	def code_at(self, ts, return_remaining_validity = False):
+		remaining_validity = self._timestep - (ts % self._timestep)
 		T = int.to_bytes(ts // self._timestep, length = 8, byteorder = "big")
 		hmac = cryptography.hazmat.primitives.hmac.HMAC(self._secret, self._hash_fnc, backend = self._backend)
 		hmac.update(T)
@@ -74,8 +75,12 @@ class RFC6238Auth():
 
 		offset = mac[-1] & 0x0f
 		value = int.from_bytes(mac[offset : offset + 4], byteorder = "big") & 0x7fffffff
-		return self._presentation.convert(value)
+		token = self._presentation.convert(value)
+		if return_remaining_validity:
+			return (token, remaining_validity)
+		else:
+			return token
 
-	def now(self):
+	def now(self, return_remaining_validity = False):
 		t = round(time.time())
-		return self.code_at(t)
+		return self.code_at(t, return_remaining_validity = return_remaining_validity)

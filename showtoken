@@ -33,10 +33,9 @@ class Account():
 
 		secret = account_data["secret"]
 		if secret.startswith("b64:"):
-			secret = base64.b64decode(account_data["secret"][4:])
+			secret = base64.b64decode(self._add_padding(account_data["secret"][4:], 4))
 		elif secret.startswith("b32:"):
-			print(account_data["secret"][4:])
-			secret = base64.b32decode(account_data["secret"][4:].upper())
+			secret = base64.b32decode(self._add_padding(account_data["secret"][4:].upper(), 8))
 		elif secret.startswith("str:"):
 			secret = account_data["secret"][4:].encode("ascii")
 		else:
@@ -49,15 +48,33 @@ class Account():
 		else:
 			raise NotImplementedError(self._account_data["type"])
 
+	@staticmethod
+	def _add_padding(text, multiple):
+		padding = multiple - (len(text) % multiple)
+		if padding < multiple:
+			text += ("=" * padding)
+		return text
+
 	@property
 	def name(self):
 		return self._account_data["name"]
 
 	def _token(self):
-		return self._auth.now()
+		return self._auth.now(return_remaining_validity = True)
+
+	def _split_token(self, token):
+		splits = [ ]
+		while len(token) > 4:
+			next_split = token[:3]
+			token = token[3:]
+			splits.append(next_split)
+		if len(token) > 0:
+			splits.append(token)
+		return " ".join(splits)
 
 	def print_token(self, token_len = 0):
-		print("%-*s: %s" % (token_len, self.name, self._token()))
+		(token, remaining_validity) = self._token()
+		print("%-*s [%2d]: %-10s %s" % (token_len, self.name, remaining_validity, token, self._split_token(token)))
 
 run_dir = os.path.dirname(os.path.realpath(__file__))
 with open(run_dir + "/accounts.json") as f:
@@ -69,7 +86,7 @@ def clrscr():
 	sys.stdout.flush()
 
 length = max(len(account.name) for account in accounts)
-while True:
+for i in range(120):
 	clrscr()
 	for account in accounts:
 		account.print_token(length)
