@@ -19,6 +19,8 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import base64
+import urllib
 import time
 import cryptography.hazmat.backends
 import cryptography.hazmat.primitives.hashes
@@ -34,6 +36,10 @@ class RFC6238PresentationDigits(RFC6238Presentation):
 		assert(1 <= digits <= 8)
 		self._digits = digits
 		self._modulo = 10 ** digits
+
+	@property
+	def digits(self):
+		return self._digits
 
 	def convert(self, int_value):
 		return "%0*d" % (self._digits, int_value % self._modulo)
@@ -59,12 +65,27 @@ class RFC6238Auth():
 		self._presentation = presentation
 
 		self._backend = cryptography.hazmat.backends.default_backend()
+		self._hmac = hmac.lower()
 		self._hash_fnc = {
 			"sha1":		cryptography.hazmat.primitives.hashes.SHA1,
 			"sha256":	cryptography.hazmat.primitives.hashes.SHA256,
 			"sha384":	cryptography.hazmat.primitives.hashes.SHA384,
 			"sha512":	cryptography.hazmat.primitives.hashes.SHA512,
-		}[hmac.lower()]()
+		}[self._hmac]()
+
+	def uri(self, name = "Authentication", issuer = None):
+		if isinstance(self._presentation, RFC6238PresentationDigits):
+			b32secret = base64.b32encode(self._secret).decode("ascii").rstrip("=")
+			uri = "otpauth://totp/%s?secret=%s" % (urllib.parse.quote(name), b32secret)
+			if self._hmac != "sha1":
+				uri += "&algorithm=%s" % (self._hmac.upper())
+			if self._presentation.digits != 6:
+				uri += "&digits=%d" % (self._presentation.digits)
+			if issuer is not None:
+				uri += "&issuer=%s" % (urllib.parse.quote(issuer))
+			return uri
+		else:
+			raise NotImplementedError(self._presentation)
 
 	def code_at(self, ts, return_remaining_validity = False):
 		remaining_validity = self._timestep - (ts % self._timestep)

@@ -42,3 +42,14 @@ class TOTPTests(unittest.TestCase):
 		secret = b"this is a test"
 		auth = RFC6238Auth(secret = secret, presentation = RFC6238PresentationSteamAuthenticator())
 		self.assertEqual(auth.code_at(57775080), "R3333")
+
+	def test_uri_steam(self):
+		with self.assertRaises(NotImplementedError):
+			RFC6238Auth(secret = b"foo", presentation = RFC6238PresentationSteamAuthenticator()).uri()
+
+	def test_uri_rfc6238(self):
+		secret = b"!!!"
+		self.assertEqual(RFC6238Auth(secret = secret, presentation = RFC6238PresentationDigits(6)).uri(name = "Foobar"), "otpauth://totp/Foobar?secret=EEQSC")
+		self.assertEqual(RFC6238Auth(secret = secret, presentation = RFC6238PresentationDigits(6)).uri(name = "Foobar 123"), "otpauth://totp/Foobar%20123?secret=EEQSC")
+		self.assertEqual(RFC6238Auth(secret = secret, presentation = RFC6238PresentationDigits(7)).uri(name = "Foobar"), "otpauth://totp/Foobar?secret=EEQSC&digits=7")
+		self.assertEqual(RFC6238Auth(secret = secret, hmac = "sha256", presentation = RFC6238PresentationDigits(5)).uri(name = "Foobar"), "otpauth://totp/Foobar?secret=EEQSC&algorithm=SHA256&digits=5")

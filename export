@@ -20,30 +20,23 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import time
 import sys
 import os
+import subprocess
 from FriendlyArgumentParser import FriendlyArgumentParser
 from Account import Account
 
 run_dir = os.path.dirname(os.path.realpath(__file__))
 default_accounts_file = run_dir + "/accounts.json"
 
-parser = FriendlyArgumentParser(description = "Display a number of RFC6238-based TOTP codes")
+parser = FriendlyArgumentParser(description = "Export account QR code")
 parser.add_argument("-d", "--token-db", metavar = "filename", type = str, default = default_accounts_file, help = "Specifies accounts file to use, a JSON file which stores all secrets. Defaults to %(default)s.")
-parser.add_argument("-t", "--timeout", metavar = "secs", type = int, default = 120, help = "Quit after this number of seconds. Defaults to %(default)d.")
-args = parser.parse_args(sys.argv[1:])
+parser.add_argument("name", metavar = "name", type = str, help = "Name of account to export to QR code.")
 
+args = parser.parse_args(sys.argv[1:])
 accounts = Account.load_accounts_from_file(args.token_db)
 
-def clrscr():
-	sys.stdout.write("\x1b[H\x1b[2J\x1b[3J")
-	sys.stdout.flush()
-
-length = max(len(account.name) for account in accounts)
-for i in range(args.timeout):
-	clrscr()
-	for account in accounts:
-		account.print_token(length)
-	time.sleep(1)
-clrscr()
+for account in accounts:
+	if args.name.lower() in account.name.lower():
+		png_filename = "export_%s.png" % (account.name.replace(" ", "_"))
+		subprocess.check_call([ "qrencode", "-o%s" % (png_filename), "-d", "150", "-s", "10", account.uri ])
