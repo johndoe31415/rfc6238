@@ -12,6 +12,7 @@ class TOTPTests(unittest.TestCase):
 		self.assertEqual(auth.code_at(1234567890), "89005924")
 		self.assertEqual(auth.code_at(2000000000), "69279037")
 		self.assertEqual(auth.code_at(20000000000), "65353130")
+		self.assertEqual(auth.code_at(96262), "00044814")
 
 	def test_rfc6238_testvectors_sha256(self):
 		secret = b"12345678901234567890123456789012"
