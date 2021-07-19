@@ -1,5 +1,5 @@
 # rfc6238
-[![Build Status](https://travis-ci.org/johndoe31415/rfc6238.svg?branch=master)](https://travis-ci.org/johndoe31415/rfc6238)
+[![Build Status](https://travis-ci.com/johndoe31415/rfc6238.svg?branch=master)](https://travis-ci.com/johndoe31415/rfc6238)
 
 This is an implementation of RFC6238-compliant TOTP tokens using Python.
 
